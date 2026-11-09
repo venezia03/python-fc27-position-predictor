@@ -6,7 +6,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.predictor import (
     FEATURES,
     MODEL_PATH,
-    get_model,
     load_model,
     predict_records,
 )
