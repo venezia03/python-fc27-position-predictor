@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -45,7 +46,7 @@
             <a href="http://127.0.0.1:8000/docs" target="_blank">
                 Документация API ↗
             </a>
-            <small>FC27 SCOUT · VERSION 1.0</small>
+            <small>FC27 SCOUT · VERSION 2.0</small>
         </div>
     </aside>
 
@@ -72,8 +73,8 @@
                     <span>Predict the position.</span>
                 </h2>
                 <p>
-                    Интеллектуальная система определения игровой позиции
-                    футболиста на основе его технических и физических характеристик.
+                    Система определения игровой позиции футболиста
+                    на основе шести основных характеристик карточки.
                 </p>
                 <a href="#predict" class="primary-link">
                     Начать анализ <span>→</span>
@@ -95,7 +96,7 @@
                     <span class="metric-icon">▦</span>
                 </div>
                 <div class="metric-value">19,789</div>
-                <div class="metric-description">Игроков в обучающем датасете</div>
+                <div class="metric-description">Игроков в датасете</div>
             </div>
 
             <div class="metric-card">
@@ -109,20 +110,20 @@
 
             <div class="metric-card">
                 <div class="metric-top">
-                    <span>MODEL ROC-AUC</span>
-                    <span class="metric-icon">↗</span>
+                    <span>INPUT FEATURES</span>
+                    <span class="metric-icon">⚽</span>
                 </div>
-                <div class="metric-value accent">96.31%</div>
-                <div class="metric-description">Logistic Regression · OvR</div>
+                <div class="metric-value accent">6</div>
+                <div class="metric-description">Основных характеристик</div>
             </div>
 
             <div class="metric-card">
                 <div class="metric-top">
-                    <span>MODEL ACCURACY</span>
+                    <span>MODEL</span>
                     <span class="metric-icon">✓</span>
                 </div>
-                <div class="metric-value">74.15%</div>
-                <div class="metric-description">Результат на тестовой выборке</div>
+                <div class="metric-value">LR</div>
+                <div class="metric-description">Logistic Regression</div>
             </div>
         </section>
 
@@ -131,16 +132,16 @@
                 <div>
                     <div class="eyebrow">01 / PLAYER ANALYSIS</div>
                     <h2>Position Predictor</h2>
-                    <p>Введи характеристики игрока для определения его позиции.</p>
+                    <p>Введи шесть характеристик карточки игрока.</p>
                 </div>
-                <span class="section-tag">ML MODEL</span>
+                <span class="section-tag">6 FEATURES · ML MODEL</span>
             </div>
 
             <form id="playerForm">
                 <div id="fields"></div>
 
                 <div class="form-footer">
-                    <span>43 FEATURES · 12 POSITION CLASSES</span>
+                    <span>6 MAIN STATS · 12 POSITION CLASSES</span>
                     <button type="submit" class="primary-button">
                         Анализировать игрока <span>→</span>
                     </button>
@@ -155,7 +156,7 @@
                 <div>
                     <div class="eyebrow">02 / BATCH ANALYSIS</div>
                     <h2>Dataset Analyzer</h2>
-                    <p>Загрузи CSV-файл для массового определения игровых позиций.</p>
+                    <p>Загрузи CSV-файл с шестью характеристиками игроков.</p>
                 </div>
                 <span class="section-tag">CSV PROCESSING</span>
             </div>
@@ -163,10 +164,10 @@
             <div class="upload-zone" id="dropZone">
                 <div class="upload-icon">↑</div>
                 <h3>Загрузи файл с данными игроков</h3>
-                <p>Выбери CSV-файл с характеристиками футболистов</p>
+                <p>CSV должен содержать столбцы PAC, SHO, PAS, DRI, DEF, PHY</p>
                 <label for="csv" class="upload-button">Выбрать файл</label>
                 <input type="file" id="csv" accept=".csv" hidden>
-                <div id="fileName" class="file-name">CSV · MAX SIZE DEPENDS ON SERVER</div>
+                <div id="fileName" class="file-name">CSV FILE</div>
             </div>
 
             <button id="upload" class="primary-button upload-submit">
@@ -178,7 +179,7 @@
 
         <footer class="footer">
             <span>FC27 SCOUT © 2026</span>
-            <span>POWERED BY MACHINE LEARNING</span>
+            <span>POWERED BY MACHINE LEARNING · 6 FEATURES</span>
         </footer>
 
     </main>

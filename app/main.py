@@ -1,53 +1,88 @@
+
 import pandas as pd
 from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.predictor import MODEL_PATH, get_model, load_model, predict_records
+from app.predictor import (
+    FEATURES,
+    MODEL_PATH,
+    get_model,
+    load_model,
+    predict_records,
+)
 
-app = FastAPI(title="FC27 Position Predictor", version="1.0.0")
+app = FastAPI(title="FC27 SCOUT", version="2.0.0")
+
 app.add_middleware(
-    CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"]
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 
 @app.get("/")
 def root():
-    return {"service": "FC27 Position Predictor", "docs": "/docs"}
+    return {
+        "service": "FC27 SCOUT",
+        "features": FEATURES,
+        "docs": "/docs",
+    }
 
 
 @app.get("/health")
 def health():
-    return {"status": "ok", "model_loaded": MODEL_PATH.exists()}
+    return {
+        "status": "ok",
+        "model_loaded": MODEL_PATH.exists(),
+        "features_count": len(FEATURES),
+    }
 
 
 @app.post("/upload-model")
 async def upload_model(file: UploadFile = File(...)):
-    if not file.filename or not file.filename.lower().endswith((".pkl", ".joblib")):
+    if not file.filename or not file.filename.lower().endswith(
+        (".pkl", ".joblib")
+    ):
         raise HTTPException(400, "Ожидается файл .pkl или .joblib")
-    # Only load model files you trust: pickle/joblib can execute code.
+
     content = await file.read()
+
     if len(content) > 100 * 1024 * 1024:
         raise HTTPException(413, "Файл слишком большой")
-    MODEL_PATH.parent.mkdir(exist_ok=True)
+
+    MODEL_PATH.parent.mkdir(parents=True, exist_ok=True)
     MODEL_PATH.write_bytes(content)
+
     try:
         load_model()
     except Exception as exc:
         MODEL_PATH.unlink(missing_ok=True)
-        raise HTTPException(400, f"Не удалось загрузить модель: {exc}")
+        raise HTTPException(400, f"Ошибка загрузки модели: {exc}")
+
     return {"status": "success", "filename": file.filename}
 
 
 @app.post("/predict")
 def predict(payload: dict):
     try:
-        players = payload.get("players")
-        if players is None:
-            players = [payload]
+        players = payload.get("players", [payload])
+
         if not isinstance(players, list) or not players:
-            raise ValueError("Передайте объект игрока или список в поле players")
+            raise ValueError("Передайте данные игрока или список players")
+
+        for player in players:
+            if not isinstance(player, dict):
+                raise ValueError("Данные игрока должны быть объектом")
+
+            if set(player.keys()) != set(FEATURES):
+                raise ValueError(
+                    f"Нужно передать ровно 6 признаков: {FEATURES}"
+                )
+
         results = predict_records(players)
         return {"predictions": results}
+
     except RuntimeError as exc:
         raise HTTPException(503, str(exc))
     except Exception as exc:
@@ -58,48 +93,29 @@ def predict(payload: dict):
 async def predict_from_csv(file: UploadFile = File(...)):
     if not file.filename or not file.filename.lower().endswith(".csv"):
         raise HTTPException(400, "Ожидается CSV-файл")
+
     try:
         df = pd.read_csv(file.file)
-        true_y = df["position"].astype(str) if "position" in df.columns else None
-        model = get_model()
-        info_cols = list(model.feature_names_in_)
-        missing = [c for c in info_cols if c not in df.columns]
+
+        missing = [name for name in FEATURES if name not in df.columns]
         if missing:
             raise ValueError(f"В CSV отсутствуют признаки: {missing}")
-        X = df[info_cols]
-        pred = model.predict(X)
+
+        records = df[FEATURES].to_dict(orient="records")
+        predictions = predict_records(records)
+
         result = df.copy()
-        result["predicted_position"] = pred
+        result["predicted_position"] = [
+            item["predicted_position"] for item in predictions
+        ]
+
         result = result.astype(object).where(pd.notna(result), None)
-        response = {"rows": result.to_dict(orient="records"), "count": len(result)}
 
-        if true_y is not None:
-            from sklearn.metrics import accuracy_score, f1_score, roc_auc_score
+        return {
+            "count": len(result),
+            "rows": result.to_dict(orient="records"),
+        }
 
-            metrics = {
-                "accuracy": float(accuracy_score(true_y, pred)),
-                "f1_macro": float(
-                    f1_score(true_y, pred, average="macro", zero_division=0)
-                ),
-            }
-            try:
-                metrics["roc_auc_ovr_macro"] = float(
-                    roc_auc_score(
-                        true_y,
-                        model.predict_proba(X),
-                        labels=model.classes_,
-                        multi_class="ovr",
-                        average="macro",
-                    )
-                )
-            except ValueError:
-                metrics["roc_auc_ovr_macro"] = None
-                metrics["roc_auc_note"] = (
-                    "ROC-AUC не рассчитан: в переданном CSV отсутствуют некоторые "
-                    "классы или недостаточно примеров."
-                )
-            response["metrics"] = metrics
-        return response
     except RuntimeError as exc:
         raise HTTPException(503, str(exc))
     except Exception as exc:
