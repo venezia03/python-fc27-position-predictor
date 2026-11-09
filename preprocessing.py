@@ -14,9 +14,14 @@ df = df.dropna(subset=[TARGET])
 
 # Выбираем числовые характеристики
 numeric_features = [
-    "pace", "shooting", "passing",
-    "dribbling", "defending", "physicality",
-    "skill_moves", "weak_foot",
+    "pace",
+    "shooting",
+    "passing",
+    "dribbling",
+    "defending",
+    "physicality",
+    "skill_moves",
+    "weak_foot",
     "attacking_crossing",
     "attacking_finishing",
     "attacking_heading_accuracy",
@@ -50,7 +55,7 @@ numeric_features = [
     "goalkeeping_handling",
     "goalkeeping_kicking",
     "goalkeeping_positioning",
-    "goalkeeping_reflexes"
+    "goalkeeping_reflexes",
 ]
 
 # Категориальные признаки
@@ -75,11 +80,7 @@ if empty_columns:
 
 # Разделение данных
 X_train, X_test, y_train, y_test = train_test_split(
-    X,
-    y,
-    test_size=0.2,
-    random_state=42,
-    stratify=y
+    X, y, test_size=0.2, random_state=42, stratify=y
 )
 
 print("\nПОДГОТОВКА ЗАВЕРШЕНА")

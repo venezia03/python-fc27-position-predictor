@@ -1,21 +1,24 @@
-from pathlib import Path
-import tempfile
-import joblib
 import pandas as pd
-from fastapi import FastAPI, UploadFile, File, HTTPException
+from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from app.predictor import load_model, get_model, predict_records, MODEL_PATH
+
+from app.predictor import MODEL_PATH, get_model, load_model, predict_records
 
 app = FastAPI(title="FC27 Position Predictor", version="1.0.0")
-app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
+app.add_middleware(
+    CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"]
+)
+
 
 @app.get("/")
 def root():
     return {"service": "FC27 Position Predictor", "docs": "/docs"}
 
+
 @app.get("/health")
 def health():
     return {"status": "ok", "model_loaded": MODEL_PATH.exists()}
+
 
 @app.post("/upload-model")
 async def upload_model(file: UploadFile = File(...)):
@@ -34,6 +37,7 @@ async def upload_model(file: UploadFile = File(...)):
         raise HTTPException(400, f"Не удалось загрузить модель: {exc}")
     return {"status": "success", "filename": file.filename}
 
+
 @app.post("/predict")
 def predict(payload: dict):
     try:
@@ -48,6 +52,7 @@ def predict(payload: dict):
         raise HTTPException(503, str(exc))
     except Exception as exc:
         raise HTTPException(400, str(exc))
+
 
 @app.post("/predict-from-csv")
 async def predict_from_csv(file: UploadFile = File(...)):
@@ -67,21 +72,32 @@ async def predict_from_csv(file: UploadFile = File(...)):
         result["predicted_position"] = pred
         result = result.astype(object).where(pd.notna(result), None)
         response = {"rows": result.to_dict(orient="records"), "count": len(result)}
-        
+
         if true_y is not None:
             from sklearn.metrics import accuracy_score, f1_score, roc_auc_score
+
             metrics = {
                 "accuracy": float(accuracy_score(true_y, pred)),
-                "f1_macro": float(f1_score(true_y, pred, average="macro", zero_division=0))
+                "f1_macro": float(
+                    f1_score(true_y, pred, average="macro", zero_division=0)
+                ),
             }
             try:
-                metrics["roc_auc_ovr_macro"] = float(roc_auc_score(
-                    true_y, model.predict_proba(X), labels=model.classes_,
-                    multi_class="ovr", average="macro"
-                ))
+                metrics["roc_auc_ovr_macro"] = float(
+                    roc_auc_score(
+                        true_y,
+                        model.predict_proba(X),
+                        labels=model.classes_,
+                        multi_class="ovr",
+                        average="macro",
+                    )
+                )
             except ValueError:
                 metrics["roc_auc_ovr_macro"] = None
-                metrics["roc_auc_note"] = "ROC-AUC не рассчитан: в переданном CSV отсутствуют некоторые классы или недостаточно примеров."
+                metrics["roc_auc_note"] = (
+                    "ROC-AUC не рассчитан: в переданном CSV отсутствуют некоторые "
+                    "классы или недостаточно примеров."
+                )
             response["metrics"] = metrics
         return response
     except RuntimeError as exc:

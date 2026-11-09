@@ -1,7 +1,8 @@
-import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
 from pathlib import Path
+
+import matplotlib.pyplot as plt
+import pandas as pd
+import seaborn as sns
 
 # Пути к файлам
 DATA_PATH = Path("data/players.csv")
@@ -41,16 +42,13 @@ position_counts = df["position"].value_counts()
 print(position_counts)
 
 # Сохраняем распределение
-position_counts.to_csv(
-    REPORTS_PATH / "position_distribution.csv"
-)
+position_counts.to_csv(REPORTS_PATH / "position_distribution.csv")
 
 # 6. Статистика характеристик
 print("\nСТАТИСТИКА ХАРАКТЕРИСТИК:")
 
 stats = df[
-    ["pace", "shooting", "passing",
-     "dribbling", "defending", "physicality"]
+    ["pace", "shooting", "passing", "dribbling", "defending", "physicality"]
 ].describe()
 
 print(stats)
@@ -60,11 +58,7 @@ stats.to_csv(REPORTS_PATH / "player_statistics.csv")
 # 7. Визуализация распределения позиций
 plt.figure(figsize=(12, 6))
 
-sns.countplot(
-    data=df,
-    x="position",
-    order=position_counts.index
-)
+sns.countplot(data=df, x="position", order=position_counts.index)
 
 plt.title("Распределение футболистов по игровым позициям")
 plt.xlabel("Игровая позиция")
@@ -76,10 +70,7 @@ plt.savefig(REPORTS_PATH / "position_distribution.png")
 plt.show()
 
 # 8. Распределение основных характеристик
-attributes = [
-    "pace", "shooting", "passing",
-    "dribbling", "defending", "physicality"
-]
+attributes = ["pace", "shooting", "passing", "dribbling", "defending", "physicality"]
 
 df[attributes].hist(figsize=(12, 8), bins=20)
 

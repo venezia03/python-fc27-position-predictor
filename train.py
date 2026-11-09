@@ -1,24 +1,20 @@
-import pandas as pd
-import joblib
-
 from pathlib import Path
 
-from sklearn.model_selection import train_test_split
+import joblib
+import pandas as pd
 from sklearn.compose import ColumnTransformer
-from sklearn.pipeline import Pipeline
-
-from sklearn.impute import SimpleImputer
-from sklearn.preprocessing import StandardScaler, OneHotEncoder
-
-from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
-
+from sklearn.impute import SimpleImputer
+from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import (
     accuracy_score,
+    classification_report,
     f1_score,
     roc_auc_score,
-    classification_report
 )
+from sklearn.model_selection import train_test_split
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
 # Пути
 DATA_PATH = Path("data/players.csv")
@@ -34,9 +30,14 @@ df = pd.read_csv(DATA_PATH)
 TARGET = "position"
 
 numeric_features = [
-    "pace", "shooting", "passing",
-    "dribbling", "defending", "physicality",
-    "skill_moves", "weak_foot",
+    "pace",
+    "shooting",
+    "passing",
+    "dribbling",
+    "defending",
+    "physicality",
+    "skill_moves",
+    "weak_foot",
     "attacking_crossing",
     "attacking_finishing",
     "attacking_heading_accuracy",
@@ -70,7 +71,7 @@ numeric_features = [
     "goalkeeping_handling",
     "goalkeeping_kicking",
     "goalkeeping_positioning",
-    "goalkeeping_reflexes"
+    "goalkeeping_reflexes",
 ]
 
 categorical_features = ["preferred_foot"]
@@ -86,43 +87,38 @@ for col in numeric_features:
 
 # Разделяем данные
 X_train, X_test, y_train, y_test = train_test_split(
-    X,
-    y,
-    test_size=0.2,
-    random_state=42,
-    stratify=y
+    X, y, test_size=0.2, random_state=42, stratify=y
 )
 
 # Предобработка
-numeric_pipeline = Pipeline([
-    ("imputer", SimpleImputer(strategy="median")),
-    ("scaler", StandardScaler())
-])
+numeric_pipeline = Pipeline(
+    [("imputer", SimpleImputer(strategy="median")), ("scaler", StandardScaler())]
+)
 
-categorical_pipeline = Pipeline([
-    ("imputer", SimpleImputer(strategy="most_frequent")),
-    ("encoder", OneHotEncoder(handle_unknown="ignore"))
-])
+categorical_pipeline = Pipeline(
+    [
+        ("imputer", SimpleImputer(strategy="most_frequent")),
+        ("encoder", OneHotEncoder(handle_unknown="ignore")),
+    ]
+)
 
-preprocessor = ColumnTransformer([
-    ("num", numeric_pipeline, numeric_features),
-    ("cat", categorical_pipeline, categorical_features)
-])
+preprocessor = ColumnTransformer(
+    [
+        ("num", numeric_pipeline, numeric_features),
+        ("cat", categorical_pipeline, categorical_features),
+    ]
+)
 
 # Модели
 models = {
-    "Logistic Regression": LogisticRegression(
-        max_iter=2000,
-        class_weight="balanced"
-    ),
-
+    "Logistic Regression": LogisticRegression(max_iter=2000, class_weight="balanced"),
     "Random Forest": RandomForestClassifier(
         n_estimators=200,
         max_depth=None,
         class_weight="balanced_subsample",
         random_state=42,
-        n_jobs=-1
-    )
+        n_jobs=-1,
+    ),
 }
 
 results = []
@@ -131,13 +127,9 @@ trained_models = {}
 print("\nНАЧАЛО ОБУЧЕНИЯ МОДЕЛЕЙ\n")
 
 for name, model in models.items():
-
     print(f"Обучение: {name}")
 
-    pipeline = Pipeline([
-        ("preprocessor", preprocessor),
-        ("classifier", model)
-    ])
+    pipeline = Pipeline([("preprocessor", preprocessor), ("classifier", model)])
 
     pipeline.fit(X_train, y_train)
 
@@ -146,26 +138,19 @@ for name, model in models.items():
 
     accuracy = accuracy_score(y_test, predictions)
 
-    f1 = f1_score(
-        y_test,
-        predictions,
-        average="macro"
-    )
+    f1 = f1_score(y_test, predictions, average="macro")
 
     roc_auc = roc_auc_score(
         y_test,
         probabilities,
         labels=pipeline.classes_,
         multi_class="ovr",
-        average="macro"
+        average="macro",
     )
 
-    results.append({
-        "Model": name,
-        "Accuracy": accuracy,
-        "F1-score": f1,
-        "ROC-AUC": roc_auc
-    })
+    results.append(
+        {"Model": name, "Accuracy": accuracy, "F1-score": f1, "ROC-AUC": roc_auc}
+    )
 
     trained_models[name] = pipeline
 
@@ -173,42 +158,28 @@ for name, model in models.items():
     print(f"F1-score: {f1:.4f}")
     print(f"ROC-AUC: {roc_auc:.4f}\n")
 
-    report = classification_report(
-        y_test,
-        predictions,
-        zero_division=0
-    )
+    report = classification_report(y_test, predictions, zero_division=0)
 
     (REPORT_PATH / f"{name.replace(' ', '_')}_report.txt").write_text(
-        report,
-        encoding="utf-8"
+        report, encoding="utf-8"
     )
 
 # Сравнение моделей
 results_df = pd.DataFrame(results)
 
-results_df = results_df.sort_values(
-    by="ROC-AUC",
-    ascending=False
-)
+results_df = results_df.sort_values(by="ROC-AUC", ascending=False)
 
 print("\nСРАВНЕНИЕ МОДЕЛЕЙ")
 print(results_df.to_string(index=False))
 
-results_df.to_csv(
-    REPORT_PATH / "model_comparison.csv",
-    index=False
-)
+results_df.to_csv(REPORT_PATH / "model_comparison.csv", index=False)
 
 # Выбираем лучшую модель
 best_name = results_df.iloc[0]["Model"]
 best_model = trained_models[best_name]
 
 # Сохраняем модель
-joblib.dump(
-    best_model,
-    MODEL_PATH / "best_model.pkl"
-)
+joblib.dump(best_model, MODEL_PATH / "best_model.pkl")
 
 print(f"\nЛУЧШАЯ МОДЕЛЬ: {best_name}")
 print("Модель сохранена в models/best_model.pkl")
