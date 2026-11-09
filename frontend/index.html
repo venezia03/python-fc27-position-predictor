@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#090d16">
+    <title>FC27 Scout — Player Analytics</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+<div class="app-shell">
+
+    <aside class="sidebar">
+        <div class="brand">
+            <div class="brand-icon">FC</div>
+            <div>
+                <strong>FC27 <span>SCOUT</span></strong>
+                <small>PLAYER ANALYTICS</small>
+            </div>
+        </div>
+
+        <div class="nav-label">WORKSPACE</div>
+
+        <nav>
+            <a href="#overview" class="nav-item active">
+                <span>◈</span> Обзор
+            </a>
+            <a href="#predict" class="nav-item">
+                <span>⌁</span> Предсказание
+            </a>
+            <a href="#csv-section" class="nav-item">
+                <span>▤</span> Анализ CSV
+            </a>
+        </nav>
+
+        <div class="sidebar-bottom">
+            <div class="status-indicator">
+                <span class="status-dot"></span>
+                API SYSTEM ONLINE
+            </div>
+            <a href="http://127.0.0.1:8000/docs" target="_blank">
+                Документация API ↗
+            </a>
+            <small>FC27 SCOUT · VERSION 1.0</small>
+        </div>
+    </aside>
+
+    <main class="main-content">
+
+        <header class="topbar">
+            <div>
+                <div class="breadcrumb">WORKSPACE / DASHBOARD</div>
+                <h1>Player Analytics</h1>
+            </div>
+            <div class="topbar-right">
+                <span class="live-badge">
+                    <span class="status-dot"></span>
+                    SYSTEM ONLINE
+                </span>
+                <div class="avatar">27</div>
+            </div>
+        </header>
+
+        <section class="hero" id="overview">
+            <div class="hero-content">
+                <div class="eyebrow">AI-POWERED FOOTBALL ANALYTICS</div>
+                <h2>Understand the game.<br>
+                    <span>Predict the position.</span>
+                </h2>
+                <p>
+                    Интеллектуальная система определения игровой позиции
+                    футболиста на основе его технических и физических характеристик.
+                </p>
+                <a href="#predict" class="primary-link">
+                    Начать анализ <span>→</span>
+                </a>
+            </div>
+            <div class="hero-visual">
+                <div class="visual-circle circle-one"></div>
+                <div class="visual-circle circle-two"></div>
+                <div class="football-icon">⚽</div>
+                <div class="visual-label">MACHINE LEARNING<br>POSITION DETECTION</div>
+                <div class="visual-number">27</div>
+            </div>
+        </section>
+
+        <section class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-top">
+                    <span>DATASET PLAYERS</span>
+                    <span class="metric-icon">▦</span>
+                </div>
+                <div class="metric-value">19,789</div>
+                <div class="metric-description">Игроков в обучающем датасете</div>
+            </div>
+
+            <div class="metric-card">
+                <div class="metric-top">
+                    <span>POSITION CLASSES</span>
+                    <span class="metric-icon">◎</span>
+                </div>
+                <div class="metric-value">12</div>
+                <div class="metric-description">Классов игровых позиций</div>
+            </div>
+
+            <div class="metric-card">
+                <div class="metric-top">
+                    <span>MODEL ROC-AUC</span>
+                    <span class="metric-icon">↗</span>
+                </div>
+                <div class="metric-value accent">96.31%</div>
+                <div class="metric-description">Logistic Regression · OvR</div>
+            </div>
+
+            <div class="metric-card">
+                <div class="metric-top">
+                    <span>MODEL ACCURACY</span>
+                    <span class="metric-icon">✓</span>
+                </div>
+                <div class="metric-value">74.15%</div>
+                <div class="metric-description">Результат на тестовой выборке</div>
+            </div>
+        </section>
+
+        <section class="workspace-section" id="predict">
+            <div class="section-heading">
+                <div>
+                    <div class="eyebrow">01 / PLAYER ANALYSIS</div>
+                    <h2>Position Predictor</h2>
+                    <p>Введи характеристики игрока для определения его позиции.</p>
+                </div>
+                <span class="section-tag">ML MODEL</span>
+            </div>
+
+            <form id="playerForm">
+                <div id="fields"></div>
+
+                <div class="form-footer">
+                    <span>43 FEATURES · 12 POSITION CLASSES</span>
+                    <button type="submit" class="primary-button">
+                        Анализировать игрока <span>→</span>
+                    </button>
+                </div>
+            </form>
+
+            <div id="result" class="result-panel hidden" aria-live="polite"></div>
+        </section>
+
+        <section class="workspace-section" id="csv-section">
+            <div class="section-heading">
+                <div>
+                    <div class="eyebrow">02 / BATCH ANALYSIS</div>
+                    <h2>Dataset Analyzer</h2>
+                    <p>Загрузи CSV-файл для массового определения игровых позиций.</p>
+                </div>
+                <span class="section-tag">CSV PROCESSING</span>
+            </div>
+
+            <div class="upload-zone" id="dropZone">
+                <div class="upload-icon">↑</div>
+                <h3>Загрузи файл с данными игроков</h3>
+                <p>Выбери CSV-файл с характеристиками футболистов</p>
+                <label for="csv" class="upload-button">Выбрать файл</label>
+                <input type="file" id="csv" accept=".csv" hidden>
+                <div id="fileName" class="file-name">CSV · MAX SIZE DEPENDS ON SERVER</div>
+            </div>
+
+            <button id="upload" class="primary-button upload-submit">
+                Запустить анализ <span>→</span>
+            </button>
+
+            <div id="csvResult" class="result-panel hidden" aria-live="polite"></div>
+        </section>
+
+        <footer class="footer">
+            <span>FC27 SCOUT © 2026</span>
+            <span>POWERED BY MACHINE LEARNING</span>
+        </footer>
+
+    </main>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
