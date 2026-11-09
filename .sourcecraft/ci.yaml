@@ -7,11 +7,13 @@ on:
 workflows:
   fc27-tests:
     tasks:
-      - name: run-python-tests
+      - name: run-python-checks
         cubes:
-          - name: install-and-test
+          - name: install-lint-and-test
             image: docker.io/library/python:3.11
             script:
               - python -m pip install --upgrade pip
               - pip install -r requirements.txt
+              - pip install ruff
+              - ruff check app tests train.py preprocessing.py eda.py
               - python -m pytest -v
